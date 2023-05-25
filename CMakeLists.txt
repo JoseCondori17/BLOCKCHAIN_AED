@@ -4,4 +4,4 @@ project(BLOCKCHAIN_AED)
 set(CMAKE_CXX_STANDARD 14)
 
 add_executable(BLOCKCHAIN_AED
-        main.cpp)
+        main.cpp Block.h Blockchain.h)
