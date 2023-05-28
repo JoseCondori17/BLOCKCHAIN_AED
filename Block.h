@@ -3,6 +3,7 @@
 #include <chrono>
 #include <string>
 #include <sstream>
+#include <vector>
 #include "Transaction.h"
 using namespace std;
 
@@ -14,8 +15,9 @@ private:
     string data; // data del bloque
     string prevHash; //hash del bloque anterior a la cadena
     string nonce; //el proof of work (valor que se ajusta
-    string index; //posición del bloque
+    int index; //posición del bloque
     time_t timestamp; //momento en el que el bloque ha sido creado
+    vector<Transaction> transactions; //Transacciones del bloque
     /*
      * time : time_t
      * transactions : information
@@ -31,7 +33,7 @@ public:
         string genesisHash = "0";  // Hash del bloque anterior para el bloque génesis es 0
         return Block(0, time(0), genesisData, genesisHash, 0); // Suponiendo que Nonce sea 0 en el bloque génesis
     }
-    static Block newBlock(int index, string previousHash, string data, int nonce) {
+    static Block newBlock(int index, const string& previousHash, const string& data, int nonce) {
         return Block(index, time(0), data, previousHash, nonce);
     }
 
@@ -41,11 +43,13 @@ public:
     string getData() const{
         return data;
     }
-    Block(int index, time_t timestamp, const string& genesisData, const string& prevHash) {
-        this->index = to_string(index);
+    //Constructor creado
+    Block(int index, time_t timestamp, const string& genesisData, const string& prevHash,int nonce) {
+        this->index = index;
         this->timestamp = timestamp;
         this->data = genesisData;
         this->prevHash = prevHash;
+        this->nonce = to_string(nonce);
     }
 
     void setKey(const string& blockKey) {
@@ -54,13 +58,19 @@ public:
     void setData(const string& blockData) {
         data = blockData;
     }
-
     void generar_hash(){}
     void toString(){}
     void print_hash(){}
-    string getPreviousHash(){}
-    string getHash(){}
-    int getIndex(){}
+    string getPreviousHash() const{
+        return prevHash;
+    }
+    string getHash() const{
+        return calculateHash();
+    }
+    int getIndex() const{
+        return index;
+    }
+    //Incrementa el valor de nonce
     void incrementNonce(){
         this->nonce += 1;
     }

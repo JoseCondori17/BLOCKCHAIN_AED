@@ -19,14 +19,14 @@ private:
 
 public:
     Blockchain() {
-        this->chain.push_back(createGenesisBlock());
+        create_genesis_block("Datos del bloque génesis");
         this->difficulty = 4;  // Dificultad inicial de la prueba de trabajo
     };
     //IMPLEMENTÉ LOS CRITERIOS DE BÚSQUEDA CON AYUDA DE INTERNET PERO NO ESTOY SEGURA SI SE ADAPTA
     // A LO QUE QUEREMOS PRESENTAR (MARGIORY)
 
     //Criterio de Búsqueda por clave (TK Key)
-    Block searchByKey(const string& key){
+    Block searchByKey(const string& key){ //Realiza una búsqueda por clave en la cadena y devuelve el bloque correspondiente si se encuentra
         for(const auto& block : chain){
             if(block.getKey() == key){
                 return block;
@@ -37,7 +37,7 @@ public:
     }
 
     // Criterio de Búsqueda de patrones en el vector (vector<TV> contains(string pattern))
-    vector<Block> searchByPattern(const string& pattern){
+    vector<Block> searchByPattern(const string& pattern){ //Realiza una búsqueda en los datos de los bloques y devuelve un vector con los que coinciden con el pattern.
         vector<Block> results;
         for(const auto& block : chain){
             if(block.getData().find(pattern) != string::npos){
@@ -49,22 +49,34 @@ public:
 
 
     ~Blockchain() {};
-    void create_genesis_block(){
-        // Crear datos para el bloque génesis.
-        // En una blockchain real, los datos generalmente serían las transacciones,
-        // pero por simplicidad, aquí sólo usamos una cadena de texto.
-        string genesisData = "Datos del bloque génesis";
 
-        // Crear el bloque génesis.
-        Block genesisBlock(0, time(0), genesisData, "0");
+    //Margiory
 
-        // Establecer los datos del bloque génesis.
+    Block createGenesisBlock(const std::string& genesisData) {
+        // Se utiliza para calcular el hash del bloque génesis.
+        //El propósito de calcular el hash es proporcionar una representación única de los datos del bloque génesis
+        // para su posterior verificación e integridad en la cadena de bloques.
+        string genesisHash = calculateGenesisHash(genesisData);
+        // Crea el bloque génesis.
+        Block genesisBlock(0, time(0), genesisData, genesisHash, 0);
+
+        // Establece los datos del bloque génesis.
         genesisBlock.setKey("Clave del bloque génesis");
-        genesisBlock.setData(genesisData);
+        return genesisBlock;
+    }
 
-        // Añadir el bloque génesis a la cadena de bloques.
-        this->chain.push_back(genesisBlock);
-    } // inicio
+    string calculateGenesisHash(const string& genesisData) {
+        hash<string> hasher;
+        stringstream ss;
+        ss << 0 << time(0) << genesisData << "0" << 0;
+        return to_string(hasher(ss.str()));
+    }
+
+    void create_genesis_block(const string& genesisData) {// Crear datos para el bloque génesis
+        Block genesisBlock = createGenesisBlock(genesisData);
+        //Y lo agrega a la cadena de bloques
+        this->chain.push_back(genesisBlock);}
+
     void add_block(string data) // verificar si es valido la prueba NONCE - Referencia al previo block
     {
         // Obtener el último bloque en la cadena
@@ -85,14 +97,16 @@ public:
         // Añadir el nuevo bloque a la cadena
         this->chain.push_back(newBlock);
     }
-    void proof_of_work(Block &block){
+
+    //Margiory
+    void proof_of_work(Block &block){ //Realiza la prueba de trabajo para un bloque dado (nonce)
         while(!is_valid_proof(block)){
             block.incrementNonce();
         }
         // Cuando salimos del bucle, hemos encontrado un nonce que hace que el hash del bloque sea válido,
         // es decir, hemos "minado" un nuevo bloque.
         cout << "Prueba de trabajo completada: " << block.getHash() << endl;
-    } // realiza la prueba de trabajo NONCE
+    }
     bool is_valid_proof(const Block& block){
             // Calcula el hash de los datos del bloque y el nonce
             string hash = block.calculateHash();
@@ -104,7 +118,9 @@ public:
             }
             return true;
     } // verificar que sea valido la prueba de trabajo PAOLA
-    bool verify_chain() { // verificar la cadena de bloques si es valido
+
+    //Margiory
+    bool verify_chain() { // verifica si la cadena de bloques es válido
         for (size_t i = 1; i < this->chain.size(); i++) {
             Block currentBlock = this->chain[i];
             Block previousBlock = this->chain[i-1];
@@ -115,7 +131,7 @@ public:
             }
 
             // Verificar que el hash del bloque anterior es correcto
-            if (currentBlock.getPrevHash() != previousBlock.getHash()) {
+            if (currentBlock.getPreviousHash() != previousBlock.getHash()) {
                 return false;
             }
         }
