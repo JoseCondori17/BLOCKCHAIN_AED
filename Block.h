@@ -2,11 +2,20 @@
 #define BLOCKCHAIN_AED_BLOCK_H
 #include <chrono>
 #include <string>
+#include <sstream>
 #include "Transaction.h"
 using namespace std;
 
 class Block{
 private:
+
+    //Margio: implemente los atributos privados para agregar un constructor block
+    string key; //clave del bloque
+    string data; // data del bloque
+    string prevHash; //hash del bloque anterior a la cadena
+    string nonce; //el proof of work (valor que se ajusta
+    string index; //posición del bloque
+    time_t timestamp; //momento en el que el bloque ha sido creado
     /*
      * time : time_t
      * transactions : information
@@ -25,6 +34,27 @@ public:
     static Block newBlock(int index, string previousHash, string data, int nonce) {
         return Block(index, time(0), data, previousHash, nonce);
     }
+
+    string getKey()const{
+        return key;
+    }
+    string getData() const{
+        return data;
+    }
+    Block(int index, time_t timestamp, const string& genesisData, const string& prevHash) {
+        this->index = to_string(index);
+        this->timestamp = timestamp;
+        this->data = genesisData;
+        this->prevHash = prevHash;
+    }
+
+    void setKey(const string& blockKey) {
+        key = blockKey;
+    }
+    void setData(const string& blockData) {
+        data = blockData;
+    }
+
     void generar_hash(){}
     void toString(){}
     void print_hash(){}

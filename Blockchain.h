@@ -22,6 +22,32 @@ public:
         this->chain.push_back(createGenesisBlock());
         this->difficulty = 4;  // Dificultad inicial de la prueba de trabajo
     };
+    //IMPLEMENTÉ LOS CRITERIOS DE BÚSQUEDA CON AYUDA DE INTERNET PERO NO ESTOY SEGURA SI SE ADAPTA
+    // A LO QUE QUEREMOS PRESENTAR (MARGIORY)
+
+    //Criterio de Búsqueda por clave (TK Key)
+    Block searchByKey(const string& key){
+        for(const auto& block : chain){
+            if(block.getKey() == key){
+                return block;
+            }
+        }
+        // Devolver un bloque vacío o generar una excepción si no se encuentra la clave
+        return Block(); // O lanzar una excepción según tus necesidades
+    }
+
+    // Criterio de Búsqueda de patrones en el vector (vector<TV> contains(string pattern))
+    vector<Block> searchByPattern(const string& pattern){
+        vector<Block> results;
+        for(const auto& block : chain){
+            if(block.getData().find(pattern) != string::npos){
+                results.push_back(block);
+            }
+        }
+        return results;
+    }
+
+
     ~Blockchain() {};
     void create_genesis_block(){
         // Crear datos para el bloque génesis.
@@ -31,6 +57,10 @@ public:
 
         // Crear el bloque génesis.
         Block genesisBlock(0, time(0), genesisData, "0");
+
+        // Establecer los datos del bloque génesis.
+        genesisBlock.setKey("Clave del bloque génesis");
+        genesisBlock.setData(genesisData);
 
         // Añadir el bloque génesis a la cadena de bloques.
         this->chain.push_back(genesisBlock);
