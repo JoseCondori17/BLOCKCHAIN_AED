@@ -1,22 +1,23 @@
-#ifndef BLOCKCHAIN_AED_BLOCKCHAIN_H
-#define BLOCKCHAIN_AED_BLOCKCHAIN_H
+#ifndef BLOCKCHAIN_AED_TRANSACTION_H
+#define BLOCKCHAIN_AED_TRANSACTION_H
 #include <iostream>
 using namespace std;
+
 class Transaction {
 private:
     std::string sender;
     std::string receiver;
     double amount;
-
+    bool isSignatureVerified;
 public:
-    Transaction(std::string sender, std::string receiver, double amount)
-            : sender(sender), receiver(receiver), amount(amount) {}
+    Transaction(string sender, string receiver, double amount)
+            : sender(std::move(sender)), receiver(std::move(receiver)), amount(amount) {}
 
-    std::string getSender() const {
+    string getSender() const {
         return sender;
     }
 
-    std::string getReceiver() const {
+    string getReceiver() const {
         return receiver;
     }
 
@@ -35,8 +36,6 @@ public:
         if (receiver != other.receiver) return receiver < other.receiver;
         return amount < other.amount;
     }
-
-
 
 };
 #endif //BLOCKCHAIN_AED_BLOCK_H

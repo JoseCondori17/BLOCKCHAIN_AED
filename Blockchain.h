@@ -7,22 +7,23 @@
 #include <openssl/sha.h>
 #include <iomanip>
 #include <sstream>
+#define DIFFICULTY 4
 using namespace std;
 class Blockchain{
 private:
     std::vector<Block> chain;  // Vector que almacena los bloques de la cadena
-    int difficulty;  // Dificultad de la prueba de trabajo
+    //int difficulty;  // Dificultad de la prueba de trabajo
 
-    Block createGenesisBlock();  // Crear el bloque génesis
+    //Block createGenesisBlock();  // Crear el bloque génesis
 
-    bool is_valid_proof(const Block& block);  // Verificar si un bloque tiene una prueba de trabajo válida
+    //bool is_valid_proof(const Block& block);  // Verificar si un bloque tiene una prueba de trabajo válida
 
-    std::pair<int, std::string> proof_of_work(const std::string& previousHash);  // Realizar la prueba de trabajo
+    //std::pair<int, std::string> proof_of_work(const std::string& previousHash);  // Realizar la prueba de trabajo
 
 public:
     Blockchain() {
-        this->chain.push_back(createGenesisBlock());
-        this->difficulty = 4;  // Dificultad inicial de la prueba de trabajo
+        this->chain.push_back(createGenesisBlock("Welcome to Blockchain"));
+        //this->difficulty = 4;  // Dificultad inicial de la prueba de trabajo
     };
     //IMPLEMENTÉ LOS CRITERIOS DE BÚSQUEDA CON AYUDA DE INTERNET PERO NO ESTOY SEGURA SI SE ADAPTA
     // A LO QUE QUEREMOS PRESENTAR (MARGIORY)
@@ -35,7 +36,7 @@ public:
             }
         }
         // Devolver un bloque vacío o generar una excepción si no se encuentra la clave
-        return Block(); // O lanzar una excepción según tus necesidades
+        return {}; // O lanzar una excepción según tus necesidades Block()
     }
 
     // Criterio de Búsqueda de patrones en el vector (vector<TV> contains(string pattern))
@@ -49,8 +50,7 @@ public:
         return results;
     }
 
-
-    ~Blockchain() {};
+    ~Blockchain()=default;
 
     //Margiory
     Block createGenesisBlock(const std::string& genesisData) {
@@ -61,7 +61,7 @@ public:
 
         // Crea el bloque génesis.
         // Suponemos que la clase Block tiene un constructor adecuado.
-        Block genesisBlock(0, time(0), genesisData, genesisHash, 0); // Debe ajustarse según la implementación de la clase Block
+        Block genesisBlock(0, genesisData, genesisHash, 0); // Debe ajustarse según la implementación de la clase Block
 
         // Establece los datos del bloque génesis.
         genesisBlock.setKey("Clave del bloque génesis"); // Debe ajustarse según la implementación de la clase Block
@@ -114,7 +114,6 @@ public:
         chain.push_back(newBlock);
     }
 
-
     //Margiory
     std::pair<int, std::string> proof_of_work(const std::string& lastHash) {
         int nonce = 0;
@@ -126,7 +125,8 @@ public:
         } while (hash.substr(0, DIFFICULTY) != std::string(DIFFICULTY, '0'));
         return std::make_pair(nonce, hash);
     }
-    std::string compute_hash(const std::string& input) {
+
+    static std::string compute_hash(const std::string& input) {
         unsigned char hash[SHA256_DIGEST_LENGTH];
         SHA256_CTX sha256;
         SHA256_Init(&sha256);
@@ -134,14 +134,14 @@ public:
         SHA256_Final(hash, &sha256);
 
         std::stringstream ss;
-        for(int i = 0; i < SHA256_DIGEST_LENGTH; i++) {
-            ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
+        for(unsigned char i : hash) {
+            ss << std::hex << std::setw(2) << std::setfill('0') << (int)i;
         }
 
         return ss.str();
     }
 
-    bool is_valid_proof(const Block& block) {
+    static bool is_valid_proof(const Block& block) {
         // Crea un nuevo string que contiene el hash del bloque
         string hash = block.getHash();
 
@@ -178,12 +178,11 @@ public:
         return true;
     }
 
-
     void add_transaccion(const Transaction& newTransaction) {
         // Comprueba si la cadena está vacía
         if (this->chain.empty()) {
             // Si está vacía, crea un bloque génesis y añádelo a la cadena
-            this->chain.push_back(Block());
+            this->chain.emplace_back(); // omite
         }
 
         // Consigue el último bloque en la cadena
@@ -244,7 +243,6 @@ public:
         return true;
     }
 
-
     void minar(Block &block){
         // Valida las transacciones en el bloque
         for (const auto& trans : block.getTransactions()) {
@@ -290,14 +288,13 @@ public:
         }
     } // mostrar los bloques
 
-
     int getNumOfBlocks(){
         return chain.size();
     } //PAOLA
+
     string getLatestBlockHash(){
         return chain.back().getHash();
     } // obtenemos el previ hash
-
 
 };
 
