@@ -7,23 +7,24 @@
 #include <iomanip>
 #include "ForwardList.h"
 #include "Transaction.h"
+#include "CircularArray.h"
 #include <openssl/evp.h>
 using namespace std;
 
+template<typename T>
 class Block {
 private:
-
     //Margio: implemente los atributos privados para agregar un constructor block
     //string key; //clave del bloque
+    int index; //posición del bloque
     string prevHash; //hash del bloque anterior a la cadena
     string currentHash;
     long long int nonce; //el proof of work (valor que se ajusta
-    int index; //posición del bloque
     string timestamp; //fecha y hora
-    ForwardList<Transaction> transactions;
+    CircularArray<T*> transactions;
 public:
     Block() = default;
-    Block(int index, ForwardList<Transaction>& transactions, const string &prevHash, long long int nonce) {
+    Block(int index, CircularArray<T*> &transactions, const string &prevHash, long long int nonce) {
         this->index = index;
         this->timestamp = currentTime();
         this->transactions = transactions;
@@ -37,36 +38,27 @@ public:
     std::string getData() {
         return toStringData();
     }
-
     std::string getPrevHash() const {
         return prevHash;
     }
-
     std::string getTimestamp() const {
         return timestamp;
     }
-
     long long int getNonce() const {
         return nonce;
     }
-
     int getIndex() const {
         return index;
     }
-
-    void setTransactions(ForwardList<Transaction> &transaction) {
+    void setTransactions(CircularArray<T*>& transaction) {
         this->transactions = transaction;
     }
-
     string getHash() {
         return currentHash;
     }
-
-    //Incrementa el valor de nonce
     void incrementNonce() {
         this->nonce += 1;
     }
-
     double getBalance(const std::string& sender) {
         double balance = 0.0;
         for (const Transaction& transaction : transactions) {
@@ -79,53 +71,50 @@ public:
         }
         return balance;
     }
+    void addTransaction(Transaction* newTransaction) {
+        if (!existTransaction(newTransaction) && !invalidTransaccion(newTransaction) && !checkLimitTransaction() && !verifySenderFunds(newTransaction))
+            transactions.push_back(newTransaction);
+        else
+            std::cout<<"Error al agregar la transaccion"<<endl;
+    }
 
-    bool addTransaction(const Transaction &newTransaction) {
-        // Verificar si la transacción ya existe en el bloque
-        for (const auto &transaccion: transactions) {
-            if (transaccion == newTransaction) {
+    bool existTransaction(Transaction* newTransaction){
+        for (size_t i = 0;i < transactions.size(); i++){
+            if (transactions[i] == newTransaction){
                 std::cout << "Error: La transacción ya existe en el bloque.\n";
-                return false;
+                return true;
             }
         }
-        // Validación de la transacción.
-        // Falta agregar mas reglas de validación.
-        if (newTransaction.getSender().empty() || newTransaction.getReceiver().empty() ||
-            newTransaction.getAmount() <= 0) {
-            // Lanzar una excepción o devolver false en caso de que la transacción no sea válida.
+        return false;
+    }
+    bool invalidTransaccion(Transaction* newTransaction){
+        if (newTransaction->getSender().empty() || newTransaction->getReceiver().empty() ||
+            newTransaction->getAmount() <= 0) {
             std::cout << "Error: Campos de transacción inválidos.\n";
-            return false;
+            return true;
         }
-
-        // Verificar el límite de transacciones (por ejemplo, 5000 transacciones por bloque)
+        return false;
+    }
+    bool checkLimitTransaction(){
         if (transactions.size() >= 5000) {
             std::cout << "Error: Se ha alcanzado el límite de transacciones para este bloque.\n";
-            return false;
+            return true;
         }
-
-        // Verificar la firma digital de la transacción
-        //if (!verifySignature(newTransaction)) {
-        //     std::cout << "Error: La firma de la transacción no es válida.\n";
-        //     return false;
-        //}
-
-        // Verificar los fondos del remitente
-         if (getBalance(newTransaction.getSender()) < newTransaction.getAmount()) {
-             std::cout << "Error: El remitente no tiene fondos suficientes para la transacción.\n";
-             return false;
-         }
-
-        // falta implementar la funcion verifySignature y getBalance (PAOLA)
-
-        // Si todo esta bien, agregar la transaccion al bloque.
-        transactions.push_back(newTransaction);
-        return true;
+        return false;
     }
+    bool verifySenderFunds(Transaction* newTransaction){
+        if (getBalance(newTransaction->getSender()) < newTransaction->getAmount()) {
+            std::cout << "Error: El remitente no tiene fondos suficientes para la transacción.\n";
+            return true;
+        }
+        return false;
+    }
+    T* MaxHeap(){
 
-    ForwardList<Transaction> getTransactions() const {
+    }
+    CircularArray<T*> getTransactions() const {
         return transactions;
     }
-
     std::string calculateHash() {
         // Concatena los datos relevantes del bloque
         std::string blockData = std::to_string(index) + timestamp + toStringTransacciones() + prevHash + std::to_string(nonce);
@@ -147,13 +136,14 @@ public:
         this->currentHash = ss.str();
         return ss.str();
     }
-
     void print_bloque(){
         cout<<"Block: "<<index<<endl;
         cout<<"Time: "<<timestamp<<endl;
         cout<<"Prev hash: "<<prevHash<<endl;
         cout<<"Hash: "<<currentHash<<endl;
         cout<<"Nonce: "<<nonce<<endl;
+        cout<<"Data: \n"<<
+            getData()<<endl;
         cout<<endl;
     }
 private:
@@ -175,7 +165,7 @@ private:
     string toStringData() {
         ostringstream oss;
         for (auto& transaction : transactions) {
-            oss <<"Sender: "<< transaction.getSender()<<"-> Receiver: " << transaction.getReceiver() <<" $"<< transaction.getAmount() << "\n";
+            oss <<"Sender: "<< transaction.getSender()<<"  Receiver: " << transaction.getReceiver() <<"  $"<< transaction.getAmount() << "\n";
         }
         return oss.str();
     }
