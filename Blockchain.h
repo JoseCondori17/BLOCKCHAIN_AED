@@ -113,19 +113,19 @@ public:
     }
     bool validateBlock(Block*& block){
         // Verificar que el bloque no está vacío
-        if (block.getTransactions().empty()) {
+        if (block->getTransactions().is_empty()) {
             return false;
         }
         // Verificar que el hash del bloque es válido
-        if (block.getHash() != block.calculateHash()){
+        if (block->getHash() != block->calculateHash()){
             return false;
         }
         // Verificar la validez de las transacciones en el bloque
-        for (Transaction* &transaction : block.getTransactions()) {
-            if (!validateTransaccion(transaction)) {
+        /*for (Transaction* &transaction : block->getTransactions()) {
+            if (!validateTransaction(transaction)) {
                 return false;
             }
-        }
+        }*/
         // Si todas las verificaciones pasan, el bloque es válido
         return true;
     }
@@ -158,6 +158,7 @@ public:
         // Si todas las verificaciones pasan, la cadena es válida
         return true;
     }
+
 
 private:
     void insert(Node* &node, Block* block){
@@ -213,6 +214,38 @@ private:
         else if (hashBlock < node->block->getHash()) return findBlock(node->left, hashBlock);
         else return findBlock(node->right, hashBlock);
     }
+
+    void countTransactionsPerUser(Node* node, T userTransactions){
+        if (node == nullptr){
+            return;
+        }
+
+        T transactions = getUserTransactions(node->block);
+        for(const auto& transaction : transactions){
+            if(validateTransaction(transaction)){
+                int userId = getIndex(transaction);
+                userTransactions[userId]++;
+            }
+        }
+
+        countTransactionsPerUser(node->left, userTransactions);
+        countTransactionsPerUser(node->right, userTransactions);
+    }
+    void countTotalTransactions(Node* node, int& totalTransactions){
+        if (node == nullptr){
+            return;
+        }
+        T transactions = getTransactions(node->block);
+        for(const auto& transaction : transactions){
+            if(validateTransaction(transaction)){
+                totalTransactions++;
+            }
+        }
+
+        countTotalTransactions(node->left, totalTransactions);
+        countTotalTransactions(node->right, totalTransactions);
+    }
+
 };
 
 #endif //BLOCKCHAIN_AED_BLOCKCHAIN_H
