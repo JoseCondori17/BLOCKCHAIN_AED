@@ -54,7 +54,12 @@ public:
         return genesisBlock;
     }
     static void mine_block(Block*& block){
+        if (!validateBlock(block)) {
+            std::cout << "Bloque inválido. No se puede minar." << std::endl;
+            return;
+        }
         proof_of_work(block);
+
     }
     static bool proof_of_work(Block*& block){
         std::string target(DIFFICULTY, '0');
@@ -101,6 +106,57 @@ public:
         mine_block(newBlock);
         insert(root, newBlock);
         this->chain.push_back(newBlock);
+        // Valida el nuevo bloque
+        if (!validateBlock(newBlock)) {
+            throw std::runtime_error("Bloque inválido. No se puede añadir a la cadena. Índice: " + std::to_string(newIndex));
+        }
+    }
+    bool validateBlock(Block*& block){
+        // Verificar que el bloque no está vacío
+        if (block.getTransactions().empty()) {
+            return false;
+        }
+        // Verificar que el hash del bloque es válido
+        if (block.getHash() != block.calculateHash()){
+            return false;
+        }
+        // Verificar la validez de las transacciones en el bloque
+        for (Transaction* &transaction : block.getTransactions()) {
+            if (!validateTransaccion(transaction)) {
+                return false;
+            }
+        }
+        // Si todas las verificaciones pasan, el bloque es válido
+        return true;
+    }
+    bool validateTransaction(const Transaction& newTransaction)  {
+        // Verificar que el remitente y el receptor no están vacíos
+        if (newTransaction.getSender().empty() || newTransaction.getReceiver().empty()) {
+            return false;
+        }
+        // Verificar que la cantidad es mayor que cero
+        if (newTransaction.getAmount() <= 0) {
+            return false;
+        }
+        // Si todas las verificaciones pasaron, la transacción es válida
+        return true;
+    }
+    bool verify_chain() const {
+        for (size_t i = 1; i < chain.size(); ++i) {
+            const Block& currentBlock = chain[i];
+            const Block& previousBlock = chain[i - 1];
+
+            // Verifica que el hash del bloque anterior sea correcto
+            if (currentBlock.getPrevHash() != previousBlock.getHash()) {
+                return false;
+            }
+            // Verifica la validez de cada bloque en la cadena
+            if (!validateBlock(currentBlock)) {
+                return false;
+            }
+        }
+        // Si todas las verificaciones pasan, la cadena es válida
+        return true;
     }
 
 private:
