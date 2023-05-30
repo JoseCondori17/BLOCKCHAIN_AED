@@ -14,26 +14,28 @@ class Block {
 private:
 
     //Margio: implemente los atributos privados para agregar un constructor block
-    string key; //clave del bloque
-    string data; // data del bloque
+    //string key; //clave del bloque
     string prevHash; //hash del bloque anterior a la cadena
-    int nonce; //el proof of work (valor que se ajusta
+    string currentHash;
+    long long int nonce; //el proof of work (valor que se ajusta
     int index; //posición del bloque
     string timestamp; //fecha y hora
-
     ForwardList<Transaction> transactions;
 public:
     Block() = default;
-    ~Block() = default;
-    static Block newBlock(int index, const string &previousHash, const string &data, int nonce) {
-        return Block{index, data, previousHash, nonce};  // create object
-    }
-    std::string getKey() const {
-        return key;
+    Block(int index, ForwardList<Transaction>& transactions, const string &prevHash, long long int nonce) {
+        this->index = index;
+        this->timestamp = currentTime();
+        this->transactions = transactions;
+        this->prevHash = prevHash;
+        this->nonce = nonce;
+        this->currentHash = calculateHash();
     }
 
-    std::string getData() const {
-        return data;
+    ~Block() = default;
+
+    std::string getData() {
+        return toStringData();
     }
 
     std::string getPrevHash() const {
@@ -44,7 +46,7 @@ public:
         return timestamp;
     }
 
-    int getNonce() const {
+    long long int getNonce() const {
         return nonce;
     }
 
@@ -52,24 +54,12 @@ public:
         return index;
     }
 
-    Block(int index, const string &genesisData, const string &prevHash, int nonce) {
-        this->index = index;
-        this->timestamp = currentTime();
-        this->data = genesisData;
-        this->prevHash = prevHash;
-        this->nonce = nonce;
+    void setTransactions(ForwardList<Transaction> &transaction) {
+        this->transactions = transaction;
     }
 
-    void setKey(const string &blockKey) {
-        key = blockKey;
-    }
-
-    void setData(const string &blockData) {
-        data = blockData;
-    }
-
-    string getHash() const {
-        return calculateHash();
+    string getHash() {
+        return currentHash;
     }
 
     //Incrementa el valor de nonce
@@ -136,9 +126,9 @@ public:
         return transactions;
     }
 
-    std::string calculateHash() const {
+    std::string calculateHash() {
         // Concatena los datos relevantes del bloque
-        std::string blockData = std::to_string(index) + timestamp + data + prevHash + std::to_string(nonce);
+        std::string blockData = std::to_string(index) + timestamp + toStringTransacciones() + prevHash + std::to_string(nonce);
 
         // Calcula el hash del bloque utilizando SHA-256 u otra función hash
         unsigned char hash[EVP_MAX_MD_SIZE]; // Almacenar el resultado del hash
@@ -151,13 +141,21 @@ public:
         // cout<<"HashLength: "<<hashLength<<endl;
         // Convierte el hash binario a una representación hexadecimal
         std::stringstream ss;
-        for (unsigned char i : hash) {
-            ss << std::hex << std::setw(2) << std::setfill('0') << (int) i;
+        for (unsigned int i = 0; i < hashLength; i++) {
+            ss << std::hex << std::setw(2) << std::setfill('0') << (int) hash[i];
         }
-
+        this->currentHash = ss.str();
         return ss.str();
     }
 
+    void print_bloque(){
+        cout<<"Block: "<<index<<endl;
+        cout<<"Time: "<<timestamp<<endl;
+        cout<<"Prev hash: "<<prevHash<<endl;
+        cout<<"Hash: "<<currentHash<<endl;
+        cout<<"Nonce: "<<nonce<<endl;
+        cout<<endl;
+    }
 private:
     static string currentTime(){
         std::time_t currentTime = time(nullptr);
@@ -165,6 +163,20 @@ private:
         std::ostringstream oss; char buffer[80];
         strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localTime);
         oss << buffer;
+        return oss.str();
+    }
+    string toStringTransacciones() {
+        ostringstream oss;
+        for (auto& transaction : transactions) {
+            oss << transaction.getSender() << transaction.getReceiver() << transaction.getAmount();// << "\n";
+        }
+        return oss.str();
+    }
+    string toStringData() {
+        ostringstream oss;
+        for (auto& transaction : transactions) {
+            oss <<"Sender: "<< transaction.getSender()<<"-> Receiver: " << transaction.getReceiver() <<" $"<< transaction.getAmount() << "\n";
+        }
         return oss.str();
     }
 };
