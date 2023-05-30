@@ -15,8 +15,6 @@ using namespace std;
 template<typename T>
 class Block {
 private:
-    //Margio: implemente los atributos privados para agregar un constructor block
-    //string key; //clave del bloque
     int index; //posición del bloque
     string prevHash; //hash del bloque anterior a la cadena
     string currentHash;
@@ -49,7 +47,9 @@ public:
     void addTransaction(Transaction& newTransaction) {
         transactions.push_back(newTransaction);
     }
-
+    bool emptyTransactions(){
+        return transactions.is_empty();
+    }
     bool existTransaction(Transaction& newTransaction){
         for (size_t i = 0;i < transactions.size(); i++){
             if (transactions[i] == newTransaction){

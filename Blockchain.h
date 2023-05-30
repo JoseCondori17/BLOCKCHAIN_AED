@@ -10,7 +10,6 @@
 #include <fstream>
 #define DIFFICULTY 4
 using namespace std;
-#include <queue>
 template<typename T>
 class Blockchain{
 public:
@@ -33,7 +32,7 @@ private:
         }
     };
 private:
-    Node* root; // arbol
+    Node* root; // tree
     ForwardList<Block*> chain;
 public:
     Blockchain() = default;
@@ -48,18 +47,13 @@ public:
         this->chain.push_back(createGenesisBlock(genesisData));
         insert(root,createGenesisBlock(genesisData));
     };
-    static Block* createGenesisBlock(CircularArray<T>& genesisData) {
+    Block* createGenesisBlock(CircularArray<T>& genesisData) {
         auto * genesisBlock=new Block(0, genesisData, string(64, '0'), 0);
         mine_block(genesisBlock);
         return genesisBlock;
     }
-    static void mine_block(Block*& block){
-        if (!validateBlock(block)) {
-            std::cout << "Bloque inválido. No se puede minar." << std::endl;
-            return;
-        }
+    void mine_block(Block*& block){
         proof_of_work(block);
-
     }
     static bool proof_of_work(Block*& block){
         std::string target(DIFFICULTY, '0');
@@ -90,10 +84,10 @@ public:
     } // forward
     void printInorder(){
         printInorder(root);
-    } // bstree
+    } // btree
     void printLevels(){
         printTree(root);
-    } // bstree
+    } // btree
     void add_block(CircularArray<T>& data)
     {
         if (chain.empty()) {
@@ -106,28 +100,13 @@ public:
         mine_block(newBlock);
         insert(root, newBlock);
         this->chain.push_back(newBlock);
-        // Valida el nuevo bloque
-        if (!validateBlock(newBlock)) {
-            throw std::runtime_error("Bloque inválido. No se puede añadir a la cadena. Índice: " + std::to_string(newIndex));
-        }
     }
     bool validateBlock(Block*& block){
         // Verificar que el bloque no está vacío
-        if (block->getTransactions().is_empty()) {
-            return false;
+        if (block->emptyTransactions()) {
+            return true;
         }
-        // Verificar que el hash del bloque es válido
-        if (block->getHash() != block->calculateHash()){
-            return false;
-        }
-        // Verificar la validez de las transacciones en el bloque
-        /*for (Transaction* &transaction : block->getTransactions()) {
-            if (!validateTransaction(transaction)) {
-                return false;
-            }
-        }*/
-        // Si todas las verificaciones pasan, el bloque es válido
-        return true;
+        return false;
     }
     bool validateTransaction(const Transaction& newTransaction)  {
         // Verificar que el remitente y el receptor no están vacíos
@@ -158,7 +137,6 @@ public:
         // Si todas las verificaciones pasan, la cadena es válida
         return true;
     }
-
 
 private:
     void insert(Node* &node, Block* block){
