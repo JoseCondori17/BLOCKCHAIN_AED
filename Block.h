@@ -22,7 +22,6 @@ private:
     string currentHash;
     long long int nonce; //el proof of work (valor que se ajusta
     string timestamp; //fecha y hora
-    Block* prev;
     CircularArray<T> transactions;
 public:
     Block() = default;
@@ -35,7 +34,12 @@ public:
         this->currentHash = calculateHash();
     }
     ~Block() = default;
-
+    void setPreviousHash(string prev){
+        this->prevHash = prev;
+    }
+    void setIndex(long long int i){
+        this->index = i;
+    }
     void setTransactions(CircularArray<T>& transaction) {
         this->transactions = transaction;
     }
@@ -43,16 +47,13 @@ public:
         this->nonce += 1;
     }
     void addTransaction(Transaction& newTransaction) {
-        if (!existTransaction(newTransaction) && !invalidTransaccion(newTransaction) && !checkLimitTransaction() && !verifySenderFunds(newTransaction))
-            transactions.push_back(newTransaction);
-        else
-            std::cout<<"Error al agregar la transaccion"<<endl;
+        transactions.push_back(newTransaction);
     }
 
     bool existTransaction(Transaction& newTransaction){
         for (size_t i = 0;i < transactions.size(); i++){
             if (transactions[i] == newTransaction){
-                std::cout << "Error: La transacción ya existe en el bloque.\n";
+                std::cout << "Error: La transaccion ya existe en el bloque.\n";
                 return true;
             }
         }
@@ -61,13 +62,13 @@ public:
     bool invalidTransaccion(Transaction& newTransaction){
         if (newTransaction.getSender().empty() || newTransaction.getReceiver().empty() ||
             newTransaction.getAmount() <= 0) {
-            std::cout << "Error: Campos de transacción inválidos.\n";
+            std::cout << "Error: Campos de transaccion invalidos.\n";
             return true;
         }
         return false;
     }
     bool checkLimitTransaction(){
-        if (transactions.size() >= 5000) {
+        if (transactions.size() >= 29) {
             std::cout << "Error: Se ha alcanzado el límite de transacciones para este bloque.\n";
             return true;
         }
@@ -137,9 +138,9 @@ public:
             getData()<<endl;
         cout<<endl;
     }
-    double getBalance(const std::string& sender) {
+    double getBalance(const string& sender) {
         double balance = 0.0;
-        for (const Transaction& transaction : transactions) {
+        for (auto& transaction : transactions) {
             if (transaction.getReceiver() == sender) {
                 balance += transaction.getAmount();
             }

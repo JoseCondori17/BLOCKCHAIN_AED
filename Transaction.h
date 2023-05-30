@@ -5,25 +5,31 @@ using namespace std;
 
 class Transaction {
 private:
-    std::string sender;
-    std::string receiver;
+    string sender;
+    string receiver;
     double amount;
-    bool isSignatureVerified;
 public:
     Transaction() = default;
     Transaction(string sender, string receiver, double amount)
             : sender(std::move(sender)), receiver(std::move(receiver)), amount(amount) {}
-    ~Transaction(){}
+    ~Transaction() = default;
     string getSender() const {
         return sender;
     }
-
     string getReceiver() const {
         return receiver;
     }
-
     double getAmount() const {
         return amount;
+    }
+    void setSender(string sender_){
+        this->sender = std::move(sender_);
+    }
+    void setReceiver(string receiver_){
+        this->receiver = std::move(receiver_);
+    }
+    void setAmount(double amoun_){
+        this->amount = amoun_;
     }
     //  para poder comparar fácilmente dos transacciones:
     bool operator==(const Transaction& other) const {
