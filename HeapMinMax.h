@@ -29,7 +29,6 @@ public:
             this->elements[i] = elements[i];
         }
     }
-
     Heap(int capacity, Type type=MAX_HEAP) : capacity(capacity), type(type)
     {
         this->elements = new T[capacity];
@@ -121,8 +120,12 @@ public:
     }
 
     static void sortDesc(T* arr, int n){
-        // TODO
-        throw ("Function not implemented");
+        Heap heap(arr, n, Heap::MAX_HEAP);
+
+        for (int i = n-1; i >= 0; i--){
+            arr[i] = heap.pop();
+            heap.heapify_down(0, true);
+        }
     }
 private:
     int Parent(int i)

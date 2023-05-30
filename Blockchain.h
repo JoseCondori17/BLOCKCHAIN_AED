@@ -17,11 +17,10 @@ private:
 public:
     Blockchain() = default;
     ~Blockchain() = default;
-    explicit Blockchain(CircularArray<T*>& genesisData) {
+    explicit Blockchain(CircularArray<T>& genesisData) {
         this->chain.push_back(createGenesisBlock(genesisData));
     };
-
-    static Block* createGenesisBlock(CircularArray<T*>& genesisData) {
+    static Block* createGenesisBlock(CircularArray<T>& genesisData) {
         auto * genesisBlock=new Block(0, genesisData, string(64, '0'), 0);
         mine_block(genesisBlock);
         return genesisBlock;
@@ -37,13 +36,17 @@ public:
         } while (block->getHash().substr(0, DIFFICULTY) != target);
         return true;
     }
-
+    void printMaxHeapBlock(){ // operativo
+        cout<<chain.front()->MaxHeap().getSender()<<endl;
+        cout<<chain.front()->MaxHeap().getReceiver()<<endl;
+        cout<<chain.front()->MaxHeap().getAmount()<<endl;
+    }
     void printBlock(){
         for (auto& block : chain){
             block->print_bloque();
         }
     }
-    void add_block(CircularArray<T*>& data)
+    void add_block(CircularArray<T>& data)
     {
         if (chain.empty()) {
             throw std::invalid_argument("La cadena está vacía. No puedes añadir un bloque a una cadena vacía.");

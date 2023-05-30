@@ -12,7 +12,6 @@ protected:
     T *array;
     int capacity;
     int back, front;
-
 public:
     CircularArray(int _capacity = 30);
     ~CircularArray() { delete[] array; }

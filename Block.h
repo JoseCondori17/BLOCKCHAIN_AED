@@ -8,6 +8,7 @@
 #include "ForwardList.h"
 #include "Transaction.h"
 #include "CircularArray.h"
+#include "HeapMinMax.h"
 #include <openssl/evp.h>
 using namespace std;
 
@@ -21,10 +22,11 @@ private:
     string currentHash;
     long long int nonce; //el proof of work (valor que se ajusta
     string timestamp; //fecha y hora
-    CircularArray<T*> transactions;
+    Block* prev;
+    CircularArray<T> transactions;
 public:
     Block() = default;
-    Block(int index, CircularArray<T*> &transactions, const string &prevHash, long long int nonce) {
+    Block(int index, CircularArray<T> &transactions, const string &prevHash, long long int nonce) {
         this->index = index;
         this->timestamp = currentTime();
         this->transactions = transactions;
@@ -32,53 +34,22 @@ public:
         this->nonce = nonce;
         this->currentHash = calculateHash();
     }
-
     ~Block() = default;
 
-    std::string getData() {
-        return toStringData();
-    }
-    std::string getPrevHash() const {
-        return prevHash;
-    }
-    std::string getTimestamp() const {
-        return timestamp;
-    }
-    long long int getNonce() const {
-        return nonce;
-    }
-    int getIndex() const {
-        return index;
-    }
-    void setTransactions(CircularArray<T*>& transaction) {
+    void setTransactions(CircularArray<T>& transaction) {
         this->transactions = transaction;
-    }
-    string getHash() {
-        return currentHash;
     }
     void incrementNonce() {
         this->nonce += 1;
     }
-    double getBalance(const std::string& sender) {
-        double balance = 0.0;
-        for (const Transaction& transaction : transactions) {
-            if (transaction.getReceiver() == sender) {
-                balance += transaction.getAmount();
-            }
-            if (transaction.getSender() == sender) {
-                balance -= transaction.getAmount();
-            }
-        }
-        return balance;
-    }
-    void addTransaction(Transaction* newTransaction) {
+    void addTransaction(Transaction& newTransaction) {
         if (!existTransaction(newTransaction) && !invalidTransaccion(newTransaction) && !checkLimitTransaction() && !verifySenderFunds(newTransaction))
             transactions.push_back(newTransaction);
         else
             std::cout<<"Error al agregar la transaccion"<<endl;
     }
 
-    bool existTransaction(Transaction* newTransaction){
+    bool existTransaction(Transaction& newTransaction){
         for (size_t i = 0;i < transactions.size(); i++){
             if (transactions[i] == newTransaction){
                 std::cout << "Error: La transacción ya existe en el bloque.\n";
@@ -87,9 +58,9 @@ public:
         }
         return false;
     }
-    bool invalidTransaccion(Transaction* newTransaction){
-        if (newTransaction->getSender().empty() || newTransaction->getReceiver().empty() ||
-            newTransaction->getAmount() <= 0) {
+    bool invalidTransaccion(Transaction& newTransaction){
+        if (newTransaction.getSender().empty() || newTransaction.getReceiver().empty() ||
+            newTransaction.getAmount() <= 0) {
             std::cout << "Error: Campos de transacción inválidos.\n";
             return true;
         }
@@ -102,18 +73,38 @@ public:
         }
         return false;
     }
-    bool verifySenderFunds(Transaction* newTransaction){
-        if (getBalance(newTransaction->getSender()) < newTransaction->getAmount()) {
+    bool verifySenderFunds(Transaction& newTransaction){
+        if (getBalance(newTransaction.getSender()) < newTransaction.getAmount()) {
             std::cout << "Error: El remitente no tiene fondos suficientes para la transacción.\n";
             return true;
         }
         return false;
     }
-    T* MaxHeap(){
-
+    T MaxHeap(){
+        auto * heap = new Heap<T>(30, Heap<T>::MAX_HEAP);
+        auto * transArray = new Transaction[transactions.size()];
+        for (int i = 0; i < transactions.size(); i++) {
+            transArray[i] = transactions[i];
+        }
+        heap->buildFromArray(transArray, transactions.size());
+        delete[] transArray;
+        return heap->top();
     }
-    CircularArray<T*> getTransactions() const {
+    T MinHeap(){
+        auto * heap = new Heap<T>(30, Heap<T>::MIN_HEAP);
+        auto * transArray = new Transaction[transactions.size()];
+        for (int i = 0; i < transactions.size(); i++) {
+            transArray[i] = transactions[i];
+        }
+        heap->buildFromArray(transArray, transactions.size());
+        delete[] transArray;
+        return heap->top();
+    }
+    CircularArray<T> getTransactions() const {
         return transactions;
+    }
+    string getHash() {
+        return currentHash;
     }
     std::string calculateHash() {
         // Concatena los datos relevantes del bloque
@@ -146,6 +137,33 @@ public:
             getData()<<endl;
         cout<<endl;
     }
+    double getBalance(const std::string& sender) {
+        double balance = 0.0;
+        for (const Transaction& transaction : transactions) {
+            if (transaction.getReceiver() == sender) {
+                balance += transaction.getAmount();
+            }
+            if (transaction.getSender() == sender) {
+                balance -= transaction.getAmount();
+            }
+        }
+        return balance;
+    }
+    std::string getData() {
+        return toStringData();
+    }
+    std::string getPrevHash() const {
+        return prevHash;
+    }
+    std::string getTimestamp() const {
+        return timestamp;
+    }
+    long long int getNonce() const {
+        return nonce;
+    }
+    int getIndex() const {
+        return index;
+    }
 private:
     static string currentTime(){
         std::time_t currentTime = time(nullptr);
@@ -157,15 +175,17 @@ private:
     }
     string toStringTransacciones() {
         ostringstream oss;
-        for (auto& transaction : transactions) {
-            oss << transaction.getSender() << transaction.getReceiver() << transaction.getAmount();// << "\n";
+        for (size_t i = 0; i < transactions.size(); i++) {
+            oss << transactions[i].getSender() << transactions[i].getReceiver() << transactions[i].getAmount();
         }
         return oss.str();
     }
     string toStringData() {
         ostringstream oss;
-        for (auto& transaction : transactions) {
-            oss <<"Sender: "<< transaction.getSender()<<"  Receiver: " << transaction.getReceiver() <<"  $"<< transaction.getAmount() << "\n";
+        for (size_t i = 0; i < transactions.size(); i++) {
+            oss << "Sender: " << transactions[i].getSender()
+                << "  Receiver: " << transactions[i].getReceiver()
+                << "  $" << transactions[i].getAmount() << "\n";
         }
         return oss.str();
     }

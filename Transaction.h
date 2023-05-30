@@ -10,9 +10,10 @@ private:
     double amount;
     bool isSignatureVerified;
 public:
+    Transaction() = default;
     Transaction(string sender, string receiver, double amount)
             : sender(std::move(sender)), receiver(std::move(receiver)), amount(amount) {}
-
+    ~Transaction(){}
     string getSender() const {
         return sender;
     }
@@ -32,10 +33,10 @@ public:
     }
     //  por si se planea usar las transacciones en un conjunto (std::set) o como clave en un mapa (std::map)
     bool operator<(const Transaction& other) const {
-        if (sender != other.sender) return sender < other.sender;
-        if (receiver != other.receiver) return receiver < other.receiver;
         return amount < other.amount;
     }
-
+    bool operator>(const Transaction& other) const {
+        return amount > other.amount;
+    }
 };
 #endif //BLOCKCHAIN_AED_BLOCK_H
