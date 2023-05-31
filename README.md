@@ -19,6 +19,9 @@ A través de la utilización de la criptografía, el blockchain puede proporcion
 - Cada bloque se identifica con un código hash
 
 ### Implementación del proof of work
+Nuestro proof of work garantiza la integridad y la inmutabilidad del blockchain, lo que hace que sea difícil y costoso reemplazar los bloques anteriores. La naturaleza computacionalmente intensiva del proof of work garantiza verificar las transacciones y mantener la seguridad del sistema.
+
+![Proof of Work](https://miro.medium.com/v2/resize:fit:1204/1*AqgfTthyFsFAxHhXxa7NEg.png)
     
 ## Explicación de las estructuras de datos utilizadas en la aplicación 
 Estructura de datos usadas:
