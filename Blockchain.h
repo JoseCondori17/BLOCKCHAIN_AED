@@ -195,8 +195,20 @@ private:
         countTotalTransactions(node->left, totalTransactions);
         countTotalTransactions(node->right, totalTransactions);
     }
-    void countTransactionsUser(Node* node,const string& user){
-        
+
+    void countTransactionsUser(Node* node,T totalTransactionsUser){
+        if (node == nullptr){
+            return;
+        }
+        T transactions = getTransactions(node->block);
+        for(const auto& transaction : transactions){
+            int userId= getIndex(transaction);
+            if(validateTransaction(transaction)){
+                totalTransactionsUser[userId]++;
+            }
+        }
+        countTransactionsUser(node->left, totalTransactionsUser);
+        countTransactionsUser(node->right, totalTransactionsUser);
     }
     //Block - corregir
     bool validateBlock(Block*& block){
