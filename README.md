@@ -25,6 +25,7 @@ Estructura de datos usadas:
 - ForwardList:
 - Circular Array:
 - Arbol binario (Heap):
+- HashTable:
 ### Diagramas
 ## Análisis de la complejidad en notación Big O de los métodos del Blockchain
 ### Método insert y  método search
