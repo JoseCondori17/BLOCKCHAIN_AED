@@ -42,6 +42,7 @@ public:
         delete root;
         root = nullptr;
     };
+    // Inicio
     explicit Blockchain(CircularArray<T>& genesisData) {
         this->root = nullptr;
         this->chain.push_back(createGenesisBlock(genesisData));
@@ -52,9 +53,11 @@ public:
         mine_block(genesisBlock);
         return genesisBlock;
     }
+    // Minar el bloque
     void mine_block(Block*& block){
         proof_of_work(block);
     }
+    // Prueba de trabajo - validación de bloque
     static bool proof_of_work(Block*& block){
         std::string target(DIFFICULTY, '0');
         do {
@@ -63,6 +66,7 @@ public:
         } while (block->getHash().substr(0, DIFFICULTY) != target);
         return true;
     }
+    // Muestra el bloque con la transacción mayor y menor
     void printMaxHeapBlock(){ // operativo
         string hashBlock = root->block->getHash();
         T maxTransaction = root->block->MaxHeap();
@@ -77,17 +81,21 @@ public:
         Block* block = findBlock(root,hashBlock);
         block->print_bloque();
     }
+    // Muestra los bloques haciendo recorridos
     void printBlock(){
         for (auto& block : chain){
             block->print_bloque();
         }
-    } // forward
+    }
     void printInorder(){
         printInorder(root);
-    } // btree
+    }
     void printLevels(){
         printTree(root);
-    } // btree
+    }
+    // Contar transacciones de un usuario
+
+    // Agregar información a un nuevo bloque
     void add_block(CircularArray<T>& data)
     {
         if (chain.empty()) {
@@ -101,44 +109,9 @@ public:
         insert(root, newBlock);
         this->chain.push_back(newBlock);
     }
-    bool validateBlock(Block*& block){
-        // Verificar que el bloque no está vacío
-        if (block->emptyTransactions()) {
-            return true;
-        }
-        return false;
-    }
-    bool validateTransaction(const Transaction& newTransaction)  {
-        // Verificar que el remitente y el receptor no están vacíos
-        if (newTransaction.getSender().empty() || newTransaction.getReceiver().empty()) {
-            return false;
-        }
-        // Verificar que la cantidad es mayor que cero
-        if (newTransaction.getAmount() <= 0) {
-            return false;
-        }
-        // Si todas las verificaciones pasaron, la transacción es válida
-        return true;
-    }
-    bool verify_chain() const {
-        for (size_t i = 1; i < chain.size(); ++i) {
-            const Block& currentBlock = chain[i];
-            const Block& previousBlock = chain[i - 1];
-
-            // Verifica que el hash del bloque anterior sea correcto
-            if (currentBlock.getPrevHash() != previousBlock.getHash()) {
-                return false;
-            }
-            // Verifica la validez de cada bloque en la cadena
-            if (!validateBlock(currentBlock)) {
-                return false;
-            }
-        }
-        // Si todas las verificaciones pasan, la cadena es válida
-        return true;
-    }
 
 private:
+    // BSTree
     void insert(Node* &node, Block* block){
         if (node == nullptr) node = new Node(block);
         else if (block->getHash() < node->block->getHash()) insert(node->left, block);
@@ -192,7 +165,6 @@ private:
         else if (hashBlock < node->block->getHash()) return findBlock(node->left, hashBlock);
         else return findBlock(node->right, hashBlock);
     }
-
     void countTransactionsPerUser(Node* node, T userTransactions){
         if (node == nullptr){
             return;
@@ -223,7 +195,46 @@ private:
         countTotalTransactions(node->left, totalTransactions);
         countTotalTransactions(node->right, totalTransactions);
     }
+    void countTransactionsUser(Node* node,const string& user){
+        
+    }
+    //Block - corregir
+    bool validateBlock(Block*& block){
+        // Verificar que el bloque no está vacío
+        if (block->emptyTransactions()) {
+            return true;
+        }
+        return false;
+    }
+    bool validateTransaction(const Transaction& newTransaction)  {
+        // Verificar que el remitente y el receptor no están vacíos
+        if (newTransaction.getSender().empty() || newTransaction.getReceiver().empty()) {
+            return false;
+        }
+        // Verificar que la cantidad es mayor que cero
+        if (newTransaction.getAmount() <= 0) {
+            return false;
+        }
+        // Si todas las verificaciones pasaron, la transacción es válida
+        return true;
+    }
+    bool verify_chain() const {
+        for (size_t i = 1; i < chain.size(); ++i) {
+            const Block& currentBlock = chain[i];
+            const Block& previousBlock = chain[i - 1];
 
+            // Verifica que el hash del bloque anterior sea correcto
+            if (currentBlock.getPrevHash() != previousBlock.getHash()) {
+                return false;
+            }
+            // Verifica la validez de cada bloque en la cadena
+            if (!validateBlock(currentBlock)) {
+                return false;
+            }
+        }
+        // Si todas las verificaciones pasan, la cadena es válida
+        return true;
+    }
 };
 
 #endif //BLOCKCHAIN_AED_BLOCKCHAIN_H
