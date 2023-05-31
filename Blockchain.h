@@ -47,6 +47,68 @@ public:
         this->chain.push_back(createGenesisBlock(genesisData));
         insert(root,createGenesisBlock(genesisData));
     };
+    explicit Blockchain(string nombreArchivo){
+        ifstream *archivo = new ifstream (nombreArchivo);
+        bool x1 = true;
+        if(archivo->is_open()){ //Si se logra abriri el archivo lo abres
+            string linea;
+            getline(*archivo,linea); //Me encargo de quitar la primera fila que son los nombres de columna
+
+            vector<vector<string>*> vr;
+            while (getline(*archivo,linea)){
+                istringstream istream(linea);
+                string reservado;
+                vector<string> *reservados = new vector<string>();
+                while (getline(istream,reservado,',')){
+                    reservados->push_back(reservado);
+                }
+                vr.push_back(reservados);
+                if(vr.size() == 30){
+                    CircularArray<Transaction> transaccionesfull;
+                    for(auto i = 0 ; i < vr.size();i++){
+                        Transaction x2(vr[i]->at(0),vr[i]->at(1),stoi(vr[i]->at(2)));
+                        transaccionesfull.push_back(x2);
+                    }
+                    if(x1){
+                        this->root = nullptr;
+                        this->chain.push_back(createGenesisBlock(transaccionesfull));
+                        insert(root, createGenesisBlock(transaccionesfull));
+                        x1 = false;
+                        vr = {};
+                    }
+                    else{
+                        add_block(transaccionesfull);
+                        vr = {};
+                    }
+                }
+                delete reservados;
+            }
+
+            if (vr.size() > 0 && x1 == false){
+                CircularArray<Transaction> transaccionesfull;
+                for(auto i = 0 ; i < vr.size();i++){
+                    Transaction x2(vr[i]->at(0),vr[i]->at(1),stoi(vr[i]->at(2)));
+                    transaccionesfull.push_back(x2);
+                }
+                add_block(transaccionesfull);
+                vr = {};
+            }
+            else{
+                CircularArray<Transaction> transaccionesfull;
+                for(auto i = 0 ; i < vr.size();i++){
+                    Transaction x2(vr[i]->at(0),vr[i]->at(1),stoi(vr[i]->at(2)));
+                    transaccionesfull.push_back(x2);
+                }
+                this->root = nullptr;
+                this->chain.push_back(createGenesisBlock(transaccionesfull));
+                insert(root, createGenesisBlock(transaccionesfull));
+                x1 = false;
+                vr= {};
+            }
+            archivo->close();
+            delete archivo;
+        }
+    }
     Block* createGenesisBlock(CircularArray<T>& genesisData) {
         auto * genesisBlock=new Block(0, genesisData, string(64, '0'), 0);
         mine_block(genesisBlock);
