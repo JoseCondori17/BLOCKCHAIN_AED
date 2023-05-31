@@ -93,7 +93,12 @@ public:
         printTree(root);
     }
     // Contar transacciones de un usuario
-
+    void countTransactionsUser(string user){
+        int value = 0;
+        countTransactionsUser(root,user,value);
+        cout<<"User: "<<user<<endl;
+        cout<<"Amount: "<<value<<endl;
+    }
     // Agregar información a un nuevo bloque
     void add_block(CircularArray<T>& data)
     {
@@ -164,38 +169,21 @@ private:
         else if (hashBlock < node->block->getHash()) return findBlock(node->left, hashBlock);
         else return findBlock(node->right, hashBlock);
     }
-    void countTransactionsPerUser(Node* node, T userTransactions){
-        if (node == nullptr){
+
+    void countTransactionsUser(Node* node,string user,int& value){
+        if (node == nullptr) {
             return;
         }
-
-        T transactions = getUserTransactions(node->block);
-        for(const auto& transaction : transactions){
-            if(validateTransaction(transaction)){
-                int userId = getIndex(transaction);
-                userTransactions[userId]++;
+        CircularArray<T> transaction_ = node->block->getTransactions();
+        for (int i = 0; i<transaction_.size();i++){
+            if (user == transaction_[i].getSender()){
+                value += transaction_[i].getAmount();
             }
         }
-
-        countTransactionsPerUser(node->left, userTransactions);
-        countTransactionsPerUser(node->right, userTransactions);
+        countTransactionsUser(node->left, user, value);
+        countTransactionsUser(node->right, user, value);
     }
-    void countTotalTransactions(Node* node, int& totalTransactions){
-        if (node == nullptr){
-            return;
-        }
-        T transactions = getTransactions(node->block);
-        for(const auto& transaction : transactions){
-            if(validateTransaction(transaction)){
-                totalTransactions++;
-            }
-        }
-
-        countTotalTransactions(node->left, totalTransactions);
-        countTotalTransactions(node->right, totalTransactions);
-    }
-
-    void countTransactionsUser(Node* node,T totalTransactionsUser){
+    void countTransactionsPerUser(Node* node,T totalTransactionsUser){
         if (node == nullptr){
             return;
         }

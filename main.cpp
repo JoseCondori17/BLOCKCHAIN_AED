@@ -64,7 +64,7 @@ int main(){
     ty.push_back( Transaction("Redt","Luca",2333));
     ty.push_back( Transaction("Juan d","Pier",16));
     CircularArray<Transaction> ui;
-    ui.push_back( Transaction("Juan","Redt",2500));
+    ui.push_back( Transaction("Piero","Redt",100));
     ui.push_back( Transaction("Luca","Juan",1655));
     ui.push_back( Transaction("Redt","Luca",2333));
     ui.push_back( Transaction("Juan d","Pier",16));
@@ -75,7 +75,7 @@ int main(){
     CircularArray<Transaction> ree;
     ree.push_back( Transaction("Juan","Redt",4312431));
     ree.push_back( Transaction("Luca","Juan",23423));
-    ree.push_back( Transaction("Redt","Luca",43242));
+    ree.push_back( Transaction("Piero","Luca",100));
     ree.push_back( Transaction("Juan d","Pier",23423));
     ree.push_back( Transaction("Juan","Redt",23423));
     ree.push_back( Transaction("Luca","Juan",433));
@@ -83,7 +83,7 @@ int main(){
     ree.push_back( Transaction("Juan d","Pier",777));
     CircularArray<Transaction> qq;
     qq.push_back( Transaction("Juan","Redt",423));
-    qq.push_back( Transaction("Luca","Juan",33));
+    qq.push_back( Transaction("Piero","Juan",100));
     qq.push_back( Transaction("Redt","Luca",121));
     qq.push_back( Transaction("Juan d","Pier",11));
     qq.push_back( Transaction("Juan","Redt",2500));
@@ -101,10 +101,11 @@ int main(){
     bloque1.add_block(ree);
     bloque1.add_block(qq);
 
+    bloque1.countTransactionsUser("Piero");
     //bloque1.printBlockchain();
-    bloque1.printLevels();
-    bloque1.printMaxHeapBlock();
-    bloque1.printMinHeapBlock();
+    //bloque1.printLevels();
+    //bloque1.printMaxHeapBlock();
+    //bloque1.printMinHeapBlock();
     //bloque1.add_block(g);
     //bloque1.printBlock();
     //bloque1.printMaxHeapBlock();
