@@ -25,10 +25,9 @@ Nuestro proof of work garantiza la integridad y la inmutabilidad del blockchain,
     
 ## Explicación de las estructuras de datos utilizadas en la aplicación 
 Estructura de datos usadas:
-- ForwardList:
-- Circular Array:
+- ForwardList: 
+- Circular Array: 
 - Arbol binario (Heap):
-- HashTable:
 ### Diagramas
 ## Análisis de la complejidad en notación Big O de los métodos del Blockchain
 ### Método insert y  método search
@@ -36,4 +35,7 @@ Estructura de datos usadas:
 ## Conclusiones
 ## Referencias Bibliográficas
 ## Lista de actividades de los integrantes
+
+En este [link](https://github.com/users/MargioUTEC/projects/2/views/1) aparece la lista de actividades de cada uno de los integrantes y las implementaciones que realizaron cada uno.
+![Lista de actividades](https://github.com/JoseCondori17/BLOCKCHAIN_AED/blob/main/Lista%20de%20actividades.png)
 
