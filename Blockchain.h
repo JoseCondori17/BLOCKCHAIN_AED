@@ -3,7 +3,6 @@
 #include <iostream>
 #include "Block.h"
 #include "Transaction.h"
-#include "HashTable.h"
 #include <openssl/sha.h>
 #include <iomanip>
 #include <sstream>
@@ -13,7 +12,7 @@ using namespace std;
 template<typename T>
 class Blockchain{
 public:
-    typedef Block<T> Block;
+    typedef class Block<T> Block;
 private:
     struct Node{
         Block* block;
