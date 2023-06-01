@@ -27,7 +27,8 @@ Nuestro proof of work garantiza la integridad y la inmutabilidad del blockchain,
 Estructura de datos usadas:
 - ForwardList: 
 - Circular Array: 
-- Arbol binario (Heap):
+- BSTree: Formación del Blockchain
+- Heap: estructura para el Block
 ### Diagramas
 ## Análisis de la complejidad en notación Big O de los métodos del Blockchain
 ### Método insert y  método search
