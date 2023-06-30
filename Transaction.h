@@ -10,39 +10,31 @@ private:
     double amount;
 public:
     Transaction() = default;
-    Transaction(string sender, string receiver, double amount)
-            : sender(std::move(sender)), receiver(std::move(receiver)), amount(amount) {}
+    Transaction(const string& sender, const string& receiver, double amount = 0){
+        this->sender = sender;
+        this->receiver = receiver;
+        this->amount = amount;
+    }
     ~Transaction() = default;
-    string getSender() const {
-        return sender;
-    }
-    string getReceiver() const {
-        return receiver;
-    }
-    double getAmount() const {
-        return amount;
-    }
-    void setSender(string sender_){
-        this->sender = std::move(sender_);
-    }
-    void setReceiver(string receiver_){
-        this->receiver = std::move(receiver_);
-    }
-    void setAmount(double amoun_){
-        this->amount = amoun_;
-    }
-    //  para poder comparar fácilmente dos transacciones:
+    // setters
+    void setSender(string sender_){ this->sender = std::move(sender_); }
+    void setReceiver(string receiver_){ this->receiver = std::move(receiver_); }
+    void setAmount(double amount_){ this->amount = amount_; }
+
+    // getters
+    string getSender() const { return sender; }
+    string getReceiver() const { return receiver; }
+    double getAmount() const { return amount; }
+
+    // sobrecargas
     bool operator==(const Transaction& other) const {
         return sender == other.sender
                && receiver == other.receiver
                && amount == other.amount;
     }
-    //  por si se planea usar las transacciones en un conjunto (std::set) o como clave en un mapa (std::map)
-    bool operator<(const Transaction& other) const {
-        return amount < other.amount;
-    }
-    bool operator>(const Transaction& other) const {
-        return amount > other.amount;
-    }
+    bool operator<(const Transaction& other) const { return amount < other.amount; }
+    bool operator>(const Transaction& other) const { return amount > other.amount; }
+    bool operator<=(const Transaction& other) const { return amount <= other.amount; }
+    bool operator>=(const Transaction& other) const { return amount >= other.amount; }
 };
 #endif //BLOCKCHAIN_AED_BLOCK_H

@@ -15,15 +15,17 @@ using namespace std;
 template<typename T>
 class Block {
 private:
-    int index; //posición del bloque
+    uint16_t index; //posición del bloque
     string prevHash; //hash del bloque anterior a la cadena
-    string currentHash;
-    long long int nonce; //el proof of work (valor que se ajusta
+    string currentHash; // hash actual del bloque
+    uint64_t nonce; //el proof of work
     string timestamp; //fecha y hora
-    CircularArray<T> transactions;
+    CircularArray<T> transactions; // transacciones
+
 public:
+    // constructores
     Block() = default;
-    Block(int index, CircularArray<T> &transactions, const string &prevHash, long long int nonce) {
+    Block(uint16_t index, CircularArray<T> &transactions, const string &prevHash, uint64_t nonce) {
         this->index = index;
         this->timestamp = currentTime();
         this->transactions = transactions;
@@ -31,56 +33,83 @@ public:
         this->nonce = nonce;
         this->currentHash = calculateHash();
     }
+
+    // destructores
     ~Block() = default;
-    void setPreviousHash(string prev){
+
+    // setters
+    void setPreviousHash(const string& prev){
         this->prevHash = prev;
     }
-    void setIndex(long long int i){
-        this->index = i;
+    void setIndex(uint64_t idx){
+        this->index = idx;
     }
     void setTransactions(CircularArray<T>& transaction) {
         this->transactions = transaction;
     }
+
+    // getters
+    uint16_t getIndex() const { return index; }
+    uint64_t getNonce() const { return nonce; }
+    string getHash() { return currentHash; }
+    string getData() { return toStringData(); }
+    string getPrevHash() const { return prevHash; }
+    string getTimestamp() const { return timestamp; }
+    CircularArray<T> getTransactions() const {
+        return transactions;
+    }
+
+    // methods
     void incrementNonce() {
         this->nonce += 1;
     }
     void addTransaction(Transaction& newTransaction) {
-        transactions.push_back(newTransaction);
-    }
+        if (verifyTransaction(newTransaction))
+            transactions.push_back(newTransaction);
+        else
+            cout << "Invalid transaction" << endl;
+    }  // uso para el blockchain
     bool emptyTransactions(){
         return transactions.is_empty();
+    }
+
+    // verificar
+    bool verifyTransaction(Transaction& newTransaction){
+        if (invalidTransaction(newTransaction))
+            return false;
+        if (existTransaction(newTransaction))
+            return false;
+        if (verifySenderFunds(newTransaction))
+            return false;
+        return true;
     }
     bool existTransaction(Transaction& newTransaction){
         for (size_t i = 0;i < transactions.size(); i++){
             if (transactions[i] == newTransaction){
-                std::cout << "Error: La transaccion ya existe en el bloque.\n";
                 return true;
             }
         }
         return false;
     }
-    bool invalidTransaccion(Transaction& newTransaction){
-        if (newTransaction.getSender().empty() || newTransaction.getReceiver().empty() ||
+    bool invalidTransaction(Transaction& newTransaction){
+        if (newTransaction.getSender().empty() ||
+            newTransaction.getReceiver().empty() ||
             newTransaction.getAmount() <= 0) {
-            std::cout << "Error: Campos de transaccion invalidos.\n";
-            return true;
-        }
-        return false;
-    }
-    bool checkLimitTransaction(){
-        if (transactions.size() >= 29) {
-            std::cout << "Error: Se ha alcanzado el límite de transacciones para este bloque.\n";
             return true;
         }
         return false;
     }
     bool verifySenderFunds(Transaction& newTransaction){
         if (getBalance(newTransaction.getSender()) < newTransaction.getAmount()) {
-            std::cout << "Error: El remitente no tiene fondos suficientes para la transacción.\n";
             return true;
         }
         return false;
     }
+    bool checkLimitTransaction(){
+        return (transactions.size() >= 29);
+    }
+
+    // corregir ...
     T MaxHeap(){
         auto * heap = new Heap<T>(30, Heap<T>::MAX_HEAP);
         auto * transArray = new Transaction[transactions.size()];
@@ -101,15 +130,11 @@ public:
         delete[] transArray;
         return heap->top();
     }
-    CircularArray<T> getTransactions() const {
-        return transactions;
-    }
-    string getHash() {
-        return currentHash;
-    }
-    std::string calculateHash() {
+
+    // esencial
+    string calculateHash() {
         // Concatena los datos relevantes del bloque
-        std::string blockData = std::to_string(index) + timestamp + toStringTransacciones() + prevHash + std::to_string(nonce);
+        string blockData = to_string(index) + timestamp + toStringTransacciones() + prevHash + to_string(nonce);
 
         // Calcula el hash del bloque utilizando SHA-256 u otra función hash
         unsigned char hash[EVP_MAX_MD_SIZE]; // Almacenar el resultado del hash
@@ -119,24 +144,12 @@ public:
         unsigned int hashLength = 0;
         EVP_DigestFinal(ctx, hash, &hashLength);
         EVP_MD_CTX_free(ctx);
-        // cout<<"HashLength: "<<hashLength<<endl;
-        // Convierte el hash binario a una representación hexadecimal
         std::stringstream ss;
         for (unsigned int i = 0; i < hashLength; i++) {
             ss << std::hex << std::setw(2) << std::setfill('0') << (int) hash[i];
         }
         this->currentHash = ss.str();
         return ss.str();
-    }
-    void print_bloque(){
-        cout<<"Block: "<<index<<endl;
-        cout<<"Time: "<<timestamp<<endl;
-        cout<<"Prev hash: "<<prevHash<<endl;
-        cout<<"Hash: "<<currentHash<<endl;
-        cout<<"Nonce: "<<nonce<<endl;
-        cout<<"Data: \n"<<
-            getData()<<endl;
-        cout<<endl;
     }
     double getBalance(const string& sender) {
         double balance = 0.0;
@@ -150,26 +163,26 @@ public:
         }
         return balance;
     }
-    std::string getData() {
-        return toStringData();
+
+    // prints
+    void print_bloque(){
+        cout<<"Block    : "<<index<<endl
+            <<"Time     : "<<timestamp<<endl
+            <<"Prev hash: "<<prevHash<<endl
+            <<"Hash     : "<<currentHash<<endl
+            <<"Nonce    : "<<nonce<<endl
+            <<"Data     : "<<endl<<
+            getData()<<endl;
     }
-    std::string getPrevHash() const {
-        return prevHash;
+    void print_table(){
+        cout<<left<<index<<setw(10)<<nonce<<setw(10)<<prevHash<<setw(10)<<currentHash<<endl;
     }
-    std::string getTimestamp() const {
-        return timestamp;
-    }
-    long long int getNonce() const {
-        return nonce;
-    }
-    int getIndex() const {
-        return index;
-    }
+
 private:
     static string currentTime(){
-        std::time_t currentTime = time(nullptr);
-        std::tm* localTime = localtime(&currentTime);
-        std::ostringstream oss; char buffer[80];
+        time_t currentTime = time(nullptr);
+        tm* localTime = localtime(&currentTime);
+        ostringstream oss; char buffer[80];
         strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localTime);
         oss << buffer;
         return oss.str();
@@ -184,9 +197,9 @@ private:
     string toStringData() {
         ostringstream oss;
         for (size_t i = 0; i < transactions.size(); i++) {
-            oss << "Sender: " << transactions[i].getSender()
-                << "  Receiver: " << transactions[i].getReceiver()
-                << "  $" << transactions[i].getAmount() << "\n";
+            oss << "Sender  : " << transactions[i].getSender()
+                << "Receiver: " << transactions[i].getReceiver()
+                << "Monto $ : " << transactions[i].getAmount() << endl;
         }
         return oss.str();
     }
