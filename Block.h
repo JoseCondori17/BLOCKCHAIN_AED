@@ -1,16 +1,6 @@
 #ifndef BLOCKCHAIN_AED_BLOCK_H
 #define BLOCKCHAIN_AED_BLOCK_H
-
-#include <chrono>
-#include <string>
-#include <sstream>
-#include <iomanip>
-#include "ForwardList.h"
-#include "Transaction.h"
-#include "CircularArray.h"
-#include "HeapMinMax.h"
-#include <openssl/evp.h>
-using namespace std;
+#include "Librerias.h"
 
 template<typename T>
 class Block {
@@ -20,33 +10,27 @@ private:
     string currentHash; // hash actual del bloque
     uint64_t nonce; //el proof of work
     string timestamp; //fecha y hora
-    CircularArray<T> transactions; // transacciones
-
+    CircularArray<T>* transactions; // transacciones
 public:
     // constructores
     Block() = default;
-    Block(uint16_t index, CircularArray<T> &transactions, const string &prevHash, uint64_t nonce) {
-        this->index = index;
+    Block(uint16_t _index, CircularArray<T>* _transactions, const string &_prevHash, uint64_t _nonce) {
+        this->index = _index;
         this->timestamp = currentTime();
-        this->transactions = transactions;
-        this->prevHash = prevHash;
-        this->nonce = nonce;
+        this->transactions = _transactions;
+        this->prevHash = _prevHash;
+        this->nonce = _nonce;
         this->currentHash = calculateHash();
+        this->prevBlock = nullptr;
     }
-
+    Block* prevBlock;
     // destructores
-    ~Block() = default;
+    ~Block() { delete prevBlock; delete transactions; };
 
     // setters
-    void setPreviousHash(const string& prev){
-        this->prevHash = prev;
-    }
-    void setIndex(uint64_t idx){
-        this->index = idx;
-    }
-    void setTransactions(CircularArray<T>& transaction) {
-        this->transactions = transaction;
-    }
+    void setPreviousHash(const string& prev){ this->prevHash = prev; }
+    void setIndex(uint64_t idx){ this->index = idx; }
+    void setTransactions(CircularArray<T>* transaction) { this->transactions = transaction; }
 
     // getters
     uint16_t getIndex() const { return index; }
@@ -55,23 +39,17 @@ public:
     string getData() { return toStringData(); }
     string getPrevHash() const { return prevHash; }
     string getTimestamp() const { return timestamp; }
-    CircularArray<T> getTransactions() const {
-        return transactions;
-    }
+    CircularArray<T>* getTransactions() const { return transactions; }
 
     // methods
-    void incrementNonce() {
-        this->nonce += 1;
-    }
+    void incrementNonce() { this->nonce += 1; }
     void addTransaction(Transaction& newTransaction) {
         if (verifyTransaction(newTransaction))
-            transactions.push_back(newTransaction);
+            transactions->push_back(newTransaction);
         else
             cout << "Invalid transaction" << endl;
     }  // uso para el blockchain
-    bool emptyTransactions(){
-        return transactions.is_empty();
-    }
+    bool emptyTransactions(){ return transactions->is_empty(); }
 
     // verificar
     bool verifyTransaction(Transaction& newTransaction){
@@ -84,8 +62,8 @@ public:
         return true;
     }
     bool existTransaction(Transaction& newTransaction){
-        for (size_t i = 0;i < transactions.size(); i++){
-            if (transactions[i] == newTransaction){
+        for (size_t i = 0;i < transactions->size(); i++){
+            if ((*transactions)[i] == newTransaction){
                 return true;
             }
         }
@@ -106,29 +84,33 @@ public:
         return false;
     }
     bool checkLimitTransaction(){
-        return (transactions.size() >= 29);
+        return (transactions->size() >= 15);
     }
 
     // corregir ...
     T MaxHeap(){
-        auto * heap = new Heap<T>(30, Heap<T>::MAX_HEAP);
-        auto * transArray = new Transaction[transactions.size()];
-        for (int i = 0; i < transactions.size(); i++) {
-            transArray[i] = transactions[i];
+        auto * heap = new Heap<T>(10, Heap<T>::MAX_HEAP);
+        auto * transArray = new Transaction[transactions->size()];
+        for (int i = 0; i < transactions->size(); i++) {
+            transArray[i] = (*transactions)[i];
         }
-        heap->buildFromArray(transArray, transactions.size());
+        heap->buildFromArray(transArray, transactions->size());
+        T maxim = heap->top();
         delete[] transArray;
-        return heap->top();
+        delete heap;
+        return maxim;
     }
     T MinHeap(){
-        auto * heap = new Heap<T>(30, Heap<T>::MIN_HEAP);
-        auto * transArray = new Transaction[transactions.size()];
-        for (int i = 0; i < transactions.size(); i++) {
-            transArray[i] = transactions[i];
+        auto * heap = new Heap<T>(10, Heap<T>::MIN_HEAP);
+        auto * transArray = new Transaction[transactions->size()];
+        for (int i = 0; i < transactions->size(); i++) {
+            transArray[i] = (*transactions)[i];
         }
-        heap->buildFromArray(transArray, transactions.size());
+        heap->buildFromArray(transArray, transactions->size());
+        T minim = heap->top();
         delete[] transArray;
-        return heap->top();
+        delete heap;
+        return minim;
     }
 
     // esencial
@@ -171,13 +153,19 @@ public:
             <<"Prev hash: "<<prevHash<<endl
             <<"Hash     : "<<currentHash<<endl
             <<"Nonce    : "<<nonce<<endl
-            <<"Data     : "<<endl<<
-            getData()<<endl;
+            <<"Data     : "<<endl;
     }
     void print_table(){
         cout<<left<<index<<setw(10)<<nonce<<setw(10)<<prevHash<<setw(10)<<currentHash<<endl;
     }
 
+    //sobrecarga
+    bool operator<(const Block<T>* other) const { return this->currentHash < other->currentHash; }
+    bool operator>(const Block<T>* other) const { return this->currentHash > other->currentHash; }
+    friend ostream & operator<<(ostream& out, Block<T>* block){
+        out<<block->getIndex();
+        return out;
+    }
 private:
     static string currentTime(){
         time_t currentTime = time(nullptr);
@@ -187,21 +175,26 @@ private:
         oss << buffer;
         return oss.str();
     }
+    // arreglar
     string toStringTransacciones() {
         ostringstream oss;
-        for (size_t i = 0; i < transactions.size(); i++) {
-            oss << transactions[i].getSender() << transactions[i].getReceiver() << transactions[i].getAmount();
+        for (size_t i = 0; i < transactions->size(); i++) {
+            oss << (*transactions)[i].getSender() << (*transactions)[i].getReceiver() << (*transactions)[i].getAmount();
         }
         return oss.str();
     }
     string toStringData() {
         ostringstream oss;
-        for (size_t i = 0; i < transactions.size(); i++) {
-            oss << "Sender  : " << transactions[i].getSender()
-                << "Receiver: " << transactions[i].getReceiver()
-                << "Monto $ : " << transactions[i].getAmount() << endl;
+        for (size_t i = 0; i < transactions->size(); i++) {
+            oss << "Sender  : " << (*transactions)[i].getSender()
+                << "Receiver: " << (*transactions)[i].getReceiver()
+                << "Monto $ : " << (*transactions)[i].getAmount() << endl;
         }
         return oss.str();
+    }
+public:
+    void results(){
+        cout<<toStringTransacciones();
     }
 };
 

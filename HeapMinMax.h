@@ -7,8 +7,7 @@
 using namespace std;
 
 template <typename T>
-class Heap
-{
+class Heap {
 public:
     enum Type {
         MAX_HEAP, MIN_HEAP

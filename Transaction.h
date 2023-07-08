@@ -15,6 +15,11 @@ public:
         this->receiver = receiver;
         this->amount = amount;
     }
+    Transaction(const Transaction& other){
+        this->sender = other.sender;
+        this->receiver = other.receiver;
+        this->amount = other.amount;
+    }
     ~Transaction() = default;
     // setters
     void setSender(string sender_){ this->sender = std::move(sender_); }
@@ -27,6 +32,12 @@ public:
     double getAmount() const { return amount; }
 
     // sobrecargas
+    friend ostream& operator<<(ostream& out, Transaction& other){
+        out << "Sender  : " << other.getSender() << endl
+            << "Receiver: " << other.getReceiver() << endl
+            << "Monto $ : " << other.getAmount() << endl;
+        return out;
+    }
     bool operator==(const Transaction& other) const {
         return sender == other.sender
                && receiver == other.receiver
